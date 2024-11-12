@@ -1,0 +1,97 @@
+# Development & Git files
+.git
+.github
+.gitignore
+.idea
+.vscode
+*.log
+.editorconfig
+.prettierrc
+.eslintrc
+.eslintignore
+.env*
+*.md
+LICENSE
+
+# Build & Debug files
+.expo
+web-build
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+*.log
+debug.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencies
+node_modules
+npm-debug.*
+
+# Testing
+__tests__
+*.test.js
+*.spec.js
+coverage
+jest.config.js
+jest.setup.js
+
+# Documentation
+docs
+documentation
+*.pdf
+*.doc
+*.docx
+
+# Development assets
+assets-dev
+screenshots
+design-files
+*.psd
+*.ai
+*.sketch
+
+# Temporary files
+.tmp
+.temp
+*.swp
+.DS_Store
+Thumbs.db
+
+# Source maps
+*.map
+
+# Development configurations
+babel.config.js
+metro.config.js
+tsconfig.json
+*.config.js
+webpack.config.js
+
+# Example & demo files
+example
+examples
+demo
+demos
+samples
+__mocks__
+
+# Misc
+.buckconfig
+.flowconfig
+.watchmanconfig
+
+# Unused platform files
+# If you're building only for iOS, ignore Android files and vice versa
+# android/   # Uncomment if building only for iOS
+# ios/      # Uncomment if building only for Android
+
+# Large media files not used in production
+assets/**/*.mp4
+assets/**/*.mov
+assets/raw
+assets/**/*.psd
