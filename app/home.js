@@ -1,21 +1,14 @@
 // app/(app)/home.js
 import { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
-import {
-  Text,
-  Button,
-  Portal,
-  Dialog,
-  FAB,
-  Searchbar,
-} from "react-native-paper";
+import { Text, Button, FAB, Searchbar } from "react-native-paper";
 import { router } from "expo-router";
 import { useTasks } from "../contexts/TaskContext";
 import { useAuth } from "../contexts/AuthContext";
-import { TaskCard } from "../components/tasks/TaskCard";
 import { TaskFilters } from "../app/tasks/taskfilters";
 import { LoadingScreen } from "../components/common/LoadingScreen";
 import { ConfirmationDialog } from "../components/common/ConfirmationDialogue";
+import { AnimatedTaskList } from "./tasks/animatedtaskslists";
 
 export default function HomeScreen() {
   const { user, signOut } = useAuth();
@@ -49,22 +42,21 @@ export default function HomeScreen() {
     }
   };
 
-
   // Filter and search tasks
   useEffect(() => {
     const tasks = getFilteredTasks(activeFilter).filter((task) =>
       task.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    
+
     // Sort tasks - pending and closest to expiry first
     const sortedTasks = tasks.sort((a, b) => {
       // First sort by status
       if (a.status !== b.status) {
-        if (a.status === 'pending') return -1;
-        if (b.status === 'pending') return 1;
+        if (a.status === "pending") return -1;
+        if (b.status === "pending") return 1;
       }
       // Then by expiry time for pending tasks
-      if (a.status === 'pending' && b.status === 'pending') {
+      if (a.status === "pending" && b.status === "pending") {
         return new Date(a.expiryTime) - new Date(b.expiryTime);
       }
       // For non-pending tasks, show most recent first
@@ -153,15 +145,12 @@ export default function HomeScreen() {
             </Button>
           </View>
         ) : (
-          filteredTasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onPress={handlePress}
-              onComplete={() => completeTask(task.id)}
-              onDelete={() => handleDeletePress(task.id)}
-            />
-          ))
+          <AnimatedTaskList
+            tasks={filteredTasks}
+            onPress={(task) => router.push(`/tasks/${task.id}`)}
+            onComplete={completeTask}
+            onDelete={handleDeletePress}
+          />
         )}
 
         <ConfirmationDialog

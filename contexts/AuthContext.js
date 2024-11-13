@@ -21,7 +21,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Failed to load user:', error);
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 1000);
     }
   };
 
@@ -39,8 +39,8 @@ export function AuthProvider({ children }) {
 
   const signOut = async () => {
     try {
-      await AsyncStorage.removeItem('user');
-      setUser(null);
+      // await AsyncStorage.removeItem('user');
+      // setUser(null);
       router.replace('/login');
     } catch (error) {
       console.error('Sign out failed:', error);
