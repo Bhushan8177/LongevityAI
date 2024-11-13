@@ -7,8 +7,6 @@ import {
   SegmentedButtons,
   Text,
   IconButton,
-  Portal,
-  Dialog,
 } from "react-native-paper";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTasks } from "../../contexts/TaskContext";
@@ -18,7 +16,7 @@ import { ConfirmationDialog } from "../../components/common/ConfirmationDialogue
 export default function UpdateTaskScreen() {
   const { id } = useLocalSearchParams();
   const { updateTask, deleteTask, getTaskById, PRIORITY_LEVELS } = useTasks();
-  const [warningDialogConfig, setWarningDialogConfig] = useState({
+  const [deleteDialogConfig, setDeleteDialogConfig] = useState({
     visible: false,
     taskId: null,
     loading: false,
@@ -36,7 +34,6 @@ export default function UpdateTaskScreen() {
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Load task data
   useEffect(() => {
@@ -95,18 +92,39 @@ export default function UpdateTaskScreen() {
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      setLoading(true);
-      await deleteTask(id);
-      router.back();
-    } catch (err) {
-      setError("Failed to delete task");
-      setLoading(false);
-    }
+  const handleCancelDelete = () => {
+    setDeleteDialogConfig({
+      visible: false,
+      taskId: null,
+      loading: false,
+    });
   };
 
   if (!originalTask) return null;
+
+  const handleConfirmDelete = async () => {
+    try {
+      setDeleteDialogConfig((prev) => ({ ...prev, loading: true }));
+      await deleteTask(deleteDialogConfig.taskId);
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+    } finally {
+      setDeleteDialogConfig({
+        visible: false,
+        taskId: null,
+        loading: false,
+      });
+      router.back();
+    }
+  };
+
+  const handleDeletePress = (id) => {
+    setDeleteDialogConfig({
+      visible: true,
+      taskId: id,
+      loading: false,
+    });
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -117,7 +135,7 @@ export default function UpdateTaskScreen() {
           mode="contained"
           containerColor="#FF3B30"
           iconColor="#fff"
-          onPress={() => setShowDeleteDialog(true)}
+          onPress={() => handleDeletePress(id)}
         />
       </View>
 
@@ -199,17 +217,19 @@ export default function UpdateTaskScreen() {
         <Text style={styles.changeIndicator}>You have unsaved changes</Text>
       )}
 
+      {/* Delete dialog */}
+
       <ConfirmationDialog
-        visible={warningDialogConfig.visible}
-        onDismiss={warningDialogConfig.visible = false}
-        // onConfirm={handleConfirmWarning}
-        title="Task Expired"
-        message="This task has expired. You cannot update it."
-        // confirmText="Extend"
-        confirmColor="#FF9500"
-        cancelText="Delete"
-        loading={warningDialogConfig.loading}
-        type="warning"
+        visible={deleteDialogConfig.visible}
+        onDismiss={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Task"
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmColor="#FF3B30"
+        loading={deleteDialogConfig.loading}
+        type="delete"
       />
     </ScrollView>
   );

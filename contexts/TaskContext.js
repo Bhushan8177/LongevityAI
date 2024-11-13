@@ -35,7 +35,7 @@ export function TaskProvider({ children }) {
   // Check for expired tasks every minute
   useEffect(() => {
     if (tasks.length > 0) {
-      const interval = setInterval(checkExpiredTasks, 60000); // Check every minute
+      const interval = setInterval(checkExpiredTasks, 10000); // Check every 10s
       return () => clearInterval(interval);
     }
   }, [tasks]);

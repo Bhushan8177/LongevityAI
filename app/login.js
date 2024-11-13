@@ -1,36 +1,53 @@
-import { View, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
-import { TextInput, Button, Text } from 'react-native-paper';
+// app/(auth)/login.js
 import { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { TextInput, Button, Text } from 'react-native-paper';
+import { Link, router } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
-import { theme } from '../utils/theme';
 
 export default function LoginScreen() {
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { signIn } = useAuth();
+
+  const validateEmail = (email) => {
+    return /\S+@\S+\.\S+/.test(email);
+  };
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      setError('Please fill in all fields');
+    setError('');
+    
+    // Validation
+    if (!email.trim() || !password.trim()) {
+      setError('All fields are required');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (password.length < 4) {
+      setError('Password must be at least 4 characters');
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
       await signIn(email, password);
+      router.replace('/home');
     } catch (err) {
-      setError('Invalid credentials');
+      setError('Invalid email or password');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text variant="headlineMedium" style={styles.title}>Welcome Back</Text>
       
       <TextInput
@@ -38,18 +55,20 @@ export default function LoginScreen() {
         value={email}
         onChangeText={setEmail}
         mode="outlined"
-        style={styles.input}
         keyboardType="email-address"
         autoCapitalize="none"
+        error={error && !validateEmail(email)}
+        style={styles.input}
       />
-      
+
       <TextInput
         label="Password"
         value={password}
         onChangeText={setPassword}
         mode="outlined"
-        style={styles.input}
         secureTextEntry
+        error={error && password.length < 6}
+        style={styles.input}
       />
 
       {error ? (
@@ -69,31 +88,30 @@ export default function LoginScreen() {
       <Link href="/signup" asChild>
         <Button mode="text">Don't have an account? Sign Up</Button>
       </Link>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 16,
     justifyContent: 'center',
   },
   title: {
     textAlign: 'center',
     marginBottom: 24,
-    color: theme.colors.primary,
   },
   input: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   button: {
-    marginTop: 24,
-    marginBottom: 12,
+    marginTop: 8,
+    marginBottom: 16,
   },
   error: {
-    color: theme.colors.error,
+    color: '#FF3B30',
+    marginBottom: 16,
     textAlign: 'center',
-    marginBottom: 12,
   },
 });

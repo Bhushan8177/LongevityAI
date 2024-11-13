@@ -1,31 +1,31 @@
-import { useEffect, useState } from "react";
+// app/(app)/home.js
+import { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import {
   Text,
   Button,
-  FAB,
-  Searchbar,
-  SegmentedButtons,
   Portal,
   Dialog,
+  FAB,
+  Searchbar,
 } from "react-native-paper";
 import { router } from "expo-router";
 import { useTasks } from "../contexts/TaskContext";
 import { useAuth } from "../contexts/AuthContext";
 import { TaskCard } from "../components/tasks/TaskCard";
+import { TaskFilters } from "../app/tasks/taskfilters";
 import { LoadingScreen } from "../components/common/LoadingScreen";
 import { ConfirmationDialog } from "../components/common/ConfirmationDialogue";
 
 export default function HomeScreen() {
   const { user, signOut } = useAuth();
-  const { getFilteredTasks, loading } = useTasks();
+  const { getFilteredTasks, loading, deleteTask, completeTask } = useTasks();
   const [searchQuery, setSearchQuery] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [tasks, setTasks] = useState([]);
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [filteredTasks, setFilteredTasks] = useState([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
 
-  const { deleteTask, completeTask } = useTasks();
   const [deleteDialogConfig, setDeleteDialogConfig] = useState({
     visible: false,
     taskId: null,
@@ -48,6 +48,31 @@ export default function HomeScreen() {
       router.push(`/tasks/${task.id}`);
     }
   };
+
+
+  // Filter and search tasks
+  useEffect(() => {
+    const tasks = getFilteredTasks(activeFilter).filter((task) =>
+      task.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
+    // Sort tasks - pending and closest to expiry first
+    const sortedTasks = tasks.sort((a, b) => {
+      // First sort by status
+      if (a.status !== b.status) {
+        if (a.status === 'pending') return -1;
+        if (b.status === 'pending') return 1;
+      }
+      // Then by expiry time for pending tasks
+      if (a.status === 'pending' && b.status === 'pending') {
+        return new Date(a.expiryTime) - new Date(b.expiryTime);
+      }
+      // For non-pending tasks, show most recent first
+      return new Date(b.expiryTime) - new Date(a.expiryTime);
+    });
+
+    setFilteredTasks(sortedTasks);
+  }, [activeFilter, searchQuery, getFilteredTasks]);
 
   const handleDeletePress = (taskId) => {
     setDeleteDialogConfig({
@@ -88,37 +113,6 @@ export default function HomeScreen() {
     });
   };
 
-  useEffect(() => {
-    const filteredTasks = getFilteredTasks(filter)
-      .filter((task) =>
-        task.title.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      .sort((a, b) => {
-        // First, separate tasks by status
-        if (a.status !== b.status) {
-          // Pending tasks come first
-          if (a.status === "pending") return -1;
-          if (b.status === "pending") return 1;
-          // Expired tasks come second
-          if (a.status === "expired") return -1;
-          if (b.status === "expired") return 1;
-        }
-
-        // For tasks with the same status, sort by expiry time
-        const aExpiry = new Date(a.expiryTime).getTime();
-        const bExpiry = new Date(b.expiryTime).getTime();
-
-        // Sort pending tasks by earliest deadline first
-        if (a.status === "pending") {
-          return aExpiry - bExpiry;
-        }
-
-        // Sort expired and completed tasks by most recent first
-        return bExpiry - aExpiry;
-      });
-
-    setTasks(filteredTasks);
-  }, [filter, searchQuery, getFilteredTasks]);
   if (loading) {
     return <LoadingScreen />;
   }
@@ -126,9 +120,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text variant="titleSmall" style={styles.greeting}>
-          Welcome, {user?.email}
-        </Text>
+        <Text variant="titleMedium">Welcome, {user?.email}</Text>
         <Button mode="text" onPress={signOut}>
           Logout
         </Button>
@@ -141,19 +133,15 @@ export default function HomeScreen() {
         style={styles.searchBar}
       />
 
-      <SegmentedButtons
-        value={filter}
-        onValueChange={setFilter}
-        buttons={[
-          { value: "all", label: "All" },
-          { value: "pending", label: "Pending" },
-          { value: "expired", label: "Expired" },
-        ]}
-        style={styles.filterButtons}
+      {/* Task Filters */}
+      <TaskFilters
+        activeFilter={activeFilter}
+        onFilterChange={setActiveFilter}
       />
 
+      {/* Task List */}
       <ScrollView style={styles.taskList}>
-        {tasks.length === 0 ? (
+        {filteredTasks.length === 0 ? (
           <View style={styles.emptyState}>
             <Text variant="bodyLarge">No tasks found</Text>
             <Button
@@ -165,12 +153,11 @@ export default function HomeScreen() {
             </Button>
           </View>
         ) : (
-          tasks.map((task) => (
+          filteredTasks.map((task) => (
             <TaskCard
               key={task.id}
               task={task}
-              //   onPress={() => router.push(`/tasks/${task.id}`)}
-              onPress={() => handlePress(task)}
+              onPress={handlePress}
               onComplete={() => completeTask(task.id)}
               onDelete={() => handleDeletePress(task.id)}
             />
@@ -207,6 +194,7 @@ export default function HomeScreen() {
         />
       </ScrollView>
 
+      {/* FAB for creating new task */}
       <FAB
         icon="plus"
         style={styles.fab}
@@ -227,17 +215,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     backgroundColor: "#fff",
-  },
-  greeting: {
-    flex: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5EA",
   },
   searchBar: {
     margin: 16,
     elevation: 0,
-  },
-  filterButtons: {
-    marginHorizontal: 16,
-    marginBottom: 16,
+    backgroundColor: "#fff",
   },
   taskList: {
     flex: 1,
@@ -254,8 +238,8 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    margin: 16,
-    right: 0,
-    bottom: 0,
+    right: 16,
+    bottom: 16,
+    backgroundColor: "#007AFF",
   },
 });

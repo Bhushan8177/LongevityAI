@@ -170,6 +170,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
     backgroundColor: '#fff',
+    paddingBottom: 5,
   },
   pressable: {
     borderRadius: 12,
