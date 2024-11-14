@@ -41,6 +41,7 @@ LongevityAI is a task management application designed to help users create, mana
   ├── TaskContext.js            # Task management context
 /utils
   ├── theme.js                  # Application theme settings
+  
 ```
 
 ## Prerequisites
