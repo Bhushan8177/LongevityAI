@@ -39,8 +39,8 @@ export function AuthProvider({ children }) {
 
   const signOut = async () => {
     try {
-      // await AsyncStorage.removeItem('user');
-      // setUser(null);
+      await AsyncStorage.removeItem('user');
+      setUser(null);
       router.replace('/login');
     } catch (error) {
       console.error('Sign out failed:', error);

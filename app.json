@@ -4,10 +4,10 @@
     "slug": "task-manager",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.svg",
+    "icon": "./assets/images/task.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/images/icon.svg",
+      "image": "./assets/images/task.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -20,13 +20,13 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.svg",
+        "foregroundImage": "./assets/images/task.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.yourcompany.taskmanager"
     },
     "web": {
-      "favicon": "./assets/images/icon.svg"
+      "favicon": "./assets/images/task.png"
     },
     "extra": {
       "eas": {
